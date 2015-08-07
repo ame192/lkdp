@@ -1,5 +1,9 @@
 Linux Kernel Development Examples.
-experimenting
+
+Still developing
 
 **Compile Environment**
-Linux ubuntu 3.16.0-30-generic #40~14.04.1-Ubuntu SMP Thu Jan 15 17:43:14 UTC 2015 x86_64 x86_64 x86_64 GNU/Linux
+
+[prompt:] uname -a
+
+Linux linux-obqm.site 3.16.7-21-desktop #1 SMP PREEMPT Tue Apr 14 07:11:37 UTC 2015 (93c1539) x86_64 x86_64 x86_64 GNU/Linux

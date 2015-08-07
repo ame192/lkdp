@@ -1,15 +1,13 @@
 #include <linux/kernel.h>
 #include <linux/module.h>
 #include <linux/proc_fs.h>
-#include <fs/proc/internal.h>
 #include <linux/sched.h>
-#include <asm/uaccess.h> //for copy_from_user
-//#include <asm/current.h>
-//#include <linux/cred.h>
+#include <asm/uaccess.h> 
 
 #define PROCFS_MAX_SIZE         2048 
 #define PROCFS_ENTRY_FILENAME   "buffer2k"
-static struct proc_dir_entry *Our_Proc_File;
+//struct proc_dir_entry{};
+struct proc_dir_entry *Our_Proc_File;
 static char procfs_buffer[PROCFS_MAX_SIZE];
 static unsigned long procfs_buffer_size = 0;
 
@@ -41,11 +39,8 @@ static ssize_t procfs_write(struct file *file,  const char *buffer,
     printk(KERN_DEBUG "procfs_write: write %lu bytes\n", procfs_buffer_size);
     return procfs_buffer_size;
 }
-//delete the third parameter foo
 static int module_permission(struct inode *inode, int op)
 {
-    //replace "current->euid" with "current_euid()" and also include <linux/sched.h>, see Documentation/credentials.txt
-    //replace with 36 for read and 34 for writing, Add ".val" after current_euid()
     if(op==36||(op==34 && (current_euid().val) ==0 ))return 0;
     return -EACCES;
 }
@@ -70,31 +65,28 @@ static struct inode_operations Inode_Ops_4_Our_Proc_File = {
 };
 int init_module()
 {
-//replace proc_create with proc_create
-    Our_Proc_File = proc_create(PROCFS_ENTRY_FILENAME, 0644, NULL,NULL);
+    Our_Proc_File = proc_create(PROCFS_ENTRY_FILENAME, 0644, NULL,&File_Ops_4_Our_Proc_File);
     if(Our_Proc_File == NULL)
     {
-        //replace proc_root with NULL
-        //remove_proc_entry(procfs_name, &proc_root);
         remove_proc_entry(PROCFS_ENTRY_FILENAME, NULL);
         printk(KERN_DEBUG "Error: Could not initialize /proc/%s\n", PROCFS_ENTRY_FILENAME);
         return -ENOMEM;
     }
-    Our_Proc_File->proc_iops = &Inode_Ops_4_Our_Proc_File;
-    Our_Proc_File->proc_fops = &File_Ops_4_Our_Proc_File;
-    //This field is deleted in newer version of Kernel.
-    //Our_Proc_File->owner     = THIS_MODULE;
-    Our_Proc_File->mode      = S_IFREG | S_IRUGO;
+    //Our_Proc_File->proc_iops = &Inode_Ops_4_Our_Proc_File;
+    //Our_Proc_File->proc_fops = &File_Ops_4_Our_Proc_File;
+    //Our_Proc_File->mode      = S_IFREG | S_IRUGO;
+    proc_set_size(Our_Proc_File, 80);
+    proc_set_user(Our_Proc_File,  GLOBAL_ROOT_UID, GLOBAL_ROOT_GID);
+    /*
     Our_Proc_File->uid       = 0;
     Our_Proc_File->gid       = 0;
     Our_Proc_File->size      = 80;
+    */
     printk(KERN_DEBUG "/proc/%s created\n", PROCFS_ENTRY_FILENAME);
     return 0;
 }
 void cleanup_module()
 {
-    //replaace proc_root with NULL
-    //remove_proc_entry(procfs_name, &proc_root);
     remove_proc_entry(PROCFS_ENTRY_FILENAME, NULL);
     printk(KERN_DEBUG "/proc/%s removed\n", PROCFS_ENTRY_FILENAME);
 }
